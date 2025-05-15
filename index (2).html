@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Táryk Rocha | Artista Musical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #e5e5e5;
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .hero-overlay {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(139, 0, 0, 0.3));
+        }
+        .menu-item {
+            position: relative;
+        }
+        .menu-item::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #8B0000;
+            transition: width 0.3s ease;
+        }
+        .menu-item:hover::after {
+            width: 100%;
+        }
+        .active::after {
+            width: 100%;
+        }
+        .section {
+            min-height: 100vh;
+            padding-top: 80px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .album-cover {
+            transition: transform 0.3s ease;
+        }
+        .album-cover:hover {
+            transform: scale(1.05);
+        }
+        .track-item:hover {
+            background-color: rgba(139, 0, 0, 0.1);
+        }
+        .progress-bar {
+            height: 4px;
+            background-color: #333;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #8B0000;
+            width: 0%;
+        }
+        .waveform {
+            height: 20px;
+            background: linear-gradient(90deg, #8B0000 0%, #8B0000 50%, #333 50%, #333 100%);
+            background-size: 10px 100%;
+        }
+        .glitch-container {
+            background-color: #0f0f0f;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .glitch {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 64px;
+            color: #8B0000;
+            position: relative;
+            animation: flicker 1.5s infinite;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+        }
+        .glitch::before {
+            animation: glitchTop 2s infinite linear;
+            top: -2px;
+            color: red;
+        }
+        .glitch::after {
+            animation: glitchBottom 2s infinite linear;
+            top: 2px;
+            color: darkred;
+        }
+        @keyframes glitchTop {
+            0% { clip: rect(0, 9999px, 0, 0); }
+            10% { clip: rect(10px, 9999px, 50px, 0); }
+            20% { clip: rect(85px, 9999px, 140px, 0); }
+            100% { clip: rect(0, 9999px, 0, 0); }
+        }
+        @keyframes glitchBottom {
+            0% { clip: rect(0, 9999px, 0, 0); }
+            10% { clip: rect(10px, 9999px, 60px, 0); }
+            20% { clip: rect(90px, 9999px, 150px, 0); }
+            100% { clip: rect(0, 9999px, 0, 0); }
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            33% { opacity: 0.9; }
+            66% { opacity: 0.4; }
+        }
+        .sub-glitch {
+            font-family: 'Inter', sans-serif;
+            color: #ccc;
+            margin-top: 10px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 30px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #8B0000;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 20px;
+            width: 1px;
+            height: calc(100% - 15px);
+            background-color: #8B0000;
+        }
+        .timeline-item:last-child::after {
+            display: none;
+        }
+        .cover-thumbnail {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .cover-thumbnail:hover {
+            transform: scale(1.03);
+        }
+        .cover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .cover-thumbnail:hover .cover-overlay {
+            opacity: 1;
+        }
+        .floating-player {
+            transition: transform 0.3s ease;
+        }
+        .floating-player.hidden {
+            transform: translateY(100%);
+        }
+    </style>
+</head>
+<body class="relative">
+    <!-- Floating Music Player -->
+    <div id="floatingPlayer" class="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 text-white p-4 z-50 border-t border-gray-800 floating-player">
+        <div class="container mx-auto flex items-center">
+            <div class="flex items-center w-1/4">
+                <img id="floatingCover" src="https://via.placeholder.com/60" alt="Album Cover" class="w-12 h-12 object-cover mr-3">
+                <div>
+                    <div id="floatingTitle" class="text-sm font-medium">Música</div>
+                    <div id="floatingArtist" class="text-xs text-gray-400">Táryk Rocha</div>
+                </div>
+                <button id="floatingLike" class="ml-4 text-gray-400 hover:text-white">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            
+            <div class="w-2/4 flex flex-col items-center">
+                <div class="flex items-center mb-2">
+                    <button id="floatingShuffle" class="mx-2 text-gray-400 hover:text-white">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button id="floatingPrev" class="mx-2 text-white">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button id="floatingPlay" class="mx-3 bg-white text-black rounded-full w-8 h-8 flex items-center justify-center">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button id="floatingNext" class="mx-2 text-white">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    <button id="floatingRepeat" class="mx-2 text-gray-400 hover:text-white">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+                <div class="w-full flex items-center">
+                    <span id="floatingCurrentTime" class="text-xs text-gray-400 mr-2">0:00</span>
+                    <div class="flex-grow relative">
+                        <div class="progress-bar rounded-full overflow-hidden">
+                            <div id="floatingProgress" class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <span id="floatingDuration" class="text-xs text-gray-400 ml-2">3:45</span>
+                </div>
+            </div>
+            
+            <div class="w-1/4 flex justify-end items-center">
+                <div class="waveform w-24 h-6 mr-4"></div>
+                <button class="text-gray-400 hover:text-white">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div class="w-24 ml-2">
+                    <input type="range" min="0" max="100" value="80" class="w-full">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-black bg-opacity-90 z-40 border-b border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-white">TÁRYK ROCHA</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="flex space-x-8">
+                        <a href="#home" class="text-white menu-item active">Início</a>
+                        <a href="#bio" class="text-gray-300 hover:text-white menu-item">Biografia</a>
+                        <a href="#discography" class="text-gray-300 hover:text-white menu-item">Discografia</a>
+                        <a href="#covers" class="text-gray-300 hover:text-white menu-item">Covers</a>
+                        <a href="#timeline" class="text-gray-300 hover:text-white menu-item">Linha do Tempo</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobileMenuButton" class="text-gray-300 hover:text-white focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-black bg-opacity-95">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="block px-3 py-2 text-white font-medium">Início</a>
+                <a href="#bio" class="block px-3 py-2 text-gray-300 hover:text-white">Biografia</a>
+                <a href="#discography" class="block px-3 py-2 text-gray-300 hover:text-white">Discografia</a>
+                <a href="#covers" class="block px-3 py-2 text-gray-300 hover:text-white">Covers</a>
+                <a href="#timeline" class="block px-3 py-2 text-gray-300 hover:text-white">Linha do Tempo</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="section active relative h-screen flex items-center justify-center bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');">
+        <div class="hero-overlay absolute inset-0"></div>
+        <div class="container mx-auto px-4 z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 text-white">TÁRYK ROCHA</h1>
+            <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-200 leading-relaxed">
+                Sou Táryk Rocha, um artista que transforma sentimento em som. Cada música nasce de um caos interno, de uma noite mal dormida. Faço música pra quem sente demais, pra quem se perdeu tentando se encontrar, e pra quem entende que amar também pode doer...
+            </p>
+            <div class="mt-10">
+                <a href="#discography" class="inline-block px-8 py-3 bg-transparent border-2 border-bordeaux text-bordeaux hover:bg-bordeaux hover:text-white transition duration-300 font-medium">
+                    EXPLORAR MÚSICAS
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Biography Section -->
+    <section id="bio" class="section py-20 bg-black">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center text-white">BIOGRAFIA</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <img src="https://via.placeholder.com/500x500" alt="Táryk Rocha" class="w-full rounded-lg shadow-xl album-cover">
+                    </div>
+                    <div>
+                        <p class="text-gray-300 mb-4 leading-relaxed">
+                            Táryk Rocha é um artista que emergiu da cena musical independente com uma voz única e letras profundamente pessoais. Sua música é uma jornada através das emoções humanas, explorando temas como amor, perda, identidade e a busca por significado.
+                        </p>
+                        <p class="text-gray-300 mb-4 leading-relaxed">
+                            Nascido e criado em um ambiente que valorizava a expressão artística, Táryk começou a compor ainda adolescente, usando a música como válvula de escape para suas angústias e questionamentos. Seu estilo mistura elementos do indie rock, folk e música eletrônica, criando um som que é ao mesmo tempo contemporâneo e atemporal.
+                        </p>
+                        <p class="text-gray-300 leading-relaxed">
+                            Com o álbum "Eighteen", lançado em 2021, Táryk estabeleceu-se como uma das vozes mais autênticas de sua geração, conquistando fãs que se identificam com a crueza e honestidade de suas composições. Atualmente, ele continua a evoluir seu som enquanto prepara novos projetos para os próximos anos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Discography Section -->
+    <section id="discography" class="section py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center text-white">DISCOGRAFIA</h2>
+            
+            <!-- Album: Eighteen -->
+            <div class="mb-16">
+                <h3 class="text-2xl font-bold mb-6 text-bordeaux flex items-center">
+                    <span class="bg-bordeaux text-white px-3 py-1 rounded mr-3 text-sm">ÁLBUM</span>
+                    "Eighteen" (2021)
+                </h3>
+                
+                <div class="bg-black bg-opacity-50 rounded-lg overflow-hidden">
+                    <!-- Album Header -->
+                    <div class="p-4 border-b border-gray-800 flex items-center">
+                        <div class="w-16 flex-shrink-0 text-center text-gray-400">#</div>
+                        <div class="flex-grow text-gray-400">TÍTULO</div>
+                        <div class="w-24 flex-shrink-0 text-center text-gray-400">DURAÇÃO</div>
+                        <div class="w-16 flex-shrink-0 text-center text-gray-400"></div>
+                    </div>
+                    
+                    <!-- Tracks -->
+                    <div class="divide-y divide-gray-800">
+                        <!-- Track 1 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">1</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Recruiting</div>
+                                <div class="text-sm text-gray-400">Busca por identidade</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">3:22</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=SuDRzD13SAw">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 2 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">2</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Stupid</div>
+                                <div class="text-sm text-gray-400">Arrependimento</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">3:45</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=lILJhv-E8nI">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 3 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">3</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Alien</div>
+                                <div class="text-sm text-gray-400">Sensação de não pertencer</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">4:12</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=WvHDwK7P9ak">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 4 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">4</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Love Seems Drug</div>
+                                <div class="text-sm text-gray-400">Amor como vício</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">3:58</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=Ar_SmQdHHc8">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 5 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">5</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Damn, I'm Drunk</div>
+                                <div class="text-sm text-gray-400">Escapismo</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">3:15</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=f3nJUCjKX90">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 6 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">6</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Driving Alone</div>
+                                <div class="text-sm text-gray-400">Solidão no caminho</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">4:30</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=XuLDBFrhIF8">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Track 7 -->
+                        <div class="track-item flex items-center p-4 hover:bg-gray-800 transition duration-200">
+                            <div class="w-16 flex-shrink-0 text-center text-gray-400">7</div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Another Room</div>
+                                <div class="text-sm text-gray-400">Mudança de fase</div>
+                            </div>
+                            <div class="w-24 flex-shrink-0 text-center text-gray-400">3:52</div>
+                            <div class="w-16 flex-shrink-0 text-center">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=Q2MKe9mMKVs">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Singles -->
+            <div>
+                <h3 class="text-2xl font-bold mb-6 text-bordeaux flex items-center">
+                    <span class="bg-bordeaux text-white px-3 py-1 rounded mr-3 text-sm">SINGLES</span>
+                </h3>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Single 1 -->
+                    <div class="bg-black bg-opacity-50 rounded-lg overflow-hidden hover:bg-opacity-70 transition duration-200">
+                        <div class="p-4 flex items-center">
+                            <div class="w-16 h-16 flex-shrink-0 mr-4">
+                                <img src="https://via.placeholder.com/60" alt="Single Cover" class="w-full h-full object-cover rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">O Tempo Não Volta Atrás (ao vivo, 2023)</div>
+                                <div class="text-sm text-gray-400">Valorizar o agora</div>
+                            </div>
+                            <div class="w-16 flex-shrink-0 flex justify-end">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=McCyboPA_TA">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Single 2 -->
+                    <div class="bg-black bg-opacity-50 rounded-lg overflow-hidden hover:bg-opacity-70 transition duration-200">
+                        <div class="p-4 flex items-center">
+                            <div class="w-16 h-16 flex-shrink-0 mr-4">
+                                <img src="https://via.placeholder.com/60" alt="Single Cover" class="w-full h-full object-cover rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Abstinência</div>
+                                <div class="text-sm text-gray-400">Desejo e recaídas</div>
+                            </div>
+                            <div class="w-16 flex-shrink-0 flex justify-end">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=2ZffwrybFfI">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Single 3 -->
+                    <div class="bg-black bg-opacity-50 rounded-lg overflow-hidden hover:bg-opacity-70 transition duration-200">
+                        <div class="p-4 flex items-center">
+                            <div class="w-16 h-16 flex-shrink-0 mr-4">
+                                <img src="https://via.placeholder.com/60" alt="Single Cover" class="w-full h-full object-cover rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Sweet Freedom</div>
+                                <div class="text-sm text-gray-400">Liberdade pessoal</div>
+                            </div>
+                            <div class="w-16 flex-shrink-0 flex justify-end">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=lzCXIfsAD3M">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Single 4 -->
+                    <div class="bg-black bg-opacity-50 rounded-lg overflow-hidden hover:bg-opacity-70 transition duration-200">
+                        <div class="p-4 flex items-center">
+                            <div class="w-16 h-16 flex-shrink-0 mr-4">
+                                <img src="https://via.placeholder.com/60" alt="Single Cover" class="w-full h-full object-cover rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-medium text-white">Te Espero Na Porta</div>
+                                <div class="text-sm text-gray-400">Reencontro e paciência</div>
+                            </div>
+                            <div class="w-16 flex-shrink-0 flex justify-end">
+                                <button class="text-gray-400 hover:text-white play-btn" data-src="https://music.youtube.com/watch?v=2EBGqMti7jY">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Section: VENDE-SE -->
+    <section class="py-20">
+        <div class="glitch-container">
+            <h1 class="glitch" data-text="VENDE-SE">VENDE-SE</h1>
+            <p class="sub-glitch">Um pacto com a indústria. O preço? A alma.</p>
+        </div>
+    </section>
+
+    <!-- Covers Section -->
+    <section id="covers" class="section py-20 bg-black">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center text-white">COVERS</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Cover 1 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 2 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 3 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 4 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 5 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 6 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 7 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cover 8 -->
+                <div class="cover-thumbnail aspect-square rounded-lg overflow-hidden">
+                    <img src="https://via.placeholder.com/500x500" alt="Cover" class="w-full h-full object-cover">
+                    <div class="cover-overlay">
+                        <button class="bg-bordeaux text-white rounded-full w-12 h-12 flex items-center justify-center">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="section py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-12 text-center text-white">LINHA DO TEMPO</h2>
+            
+            <div class="max-w-2xl mx-auto">
+                <!-- 2021 -->
+                <div class="timeline-item">
+                    <h3 class="text-xl font-bold text-white mb-2">2021</h3>
+                    <p class="text-gray-300">
+                        Lançamento do álbum "Eighteen", marcando a estreia oficial de Táryk Rocha no cenário musical. O álbum, composto por 7 faixas, explora temas da juventude, identidade e relações humanas.
+                    </p>
+                </div>
+                
+                <!-- 2023 -->
+                <div class="timeline-item">
+                    <h3 class="text-xl font-bold text-white mb-2">2023</h3>
+                    <p class="text-gray-300">
+                        Lançamento do single ao vivo "O Tempo Não Volta Atrás", capturando a energia crua das performances de Táryk. Neste ano, ele também começou a experimentar com novos sons e colaborações.
+                    </p>
+                </div>
+                
+                <!-- 2024-2025 -->
+                <div class="timeline-item">
+                    <h3 class="text-xl font-bold text-white mb-2">2024–2025</h3>
+                    <p class="text-gray-300">
+                        Projetos novos em desenvolvimento. Táryk está trabalhando em material inédito que promete expandir seus horizontes musicais enquanto mantém a autenticidade que caracteriza seu trabalho.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h2 class="text-2xl font-bold text-white">TÁRYK ROCHA</h2>
+                    <p class="text-gray-400 mt-2">Transformando sentimento em som.</p>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="https://www.youtube.com/@tarykrocha" target="_blank" class="text-gray-400 hover:text-white text-2xl">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://open.spotify.com/artist/5L2rbXmgbuM5H6qZZc7smI" target="_blank" class="text-gray-400 hover:text-white text-2xl">
+                        <i class="fab fa-spotify"></i>
+                    </a>
+                    <a href="https://www.instagram.com/tarykrocha" target="_blank" class="text-gray-400 hover:text-white text-2xl">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 Táryk Rocha. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Close mobile menu if open
+                mobileMenu.classList.add('hidden');
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active menu item
+                    document.querySelectorAll('.menu-item').forEach(item => {
+                        item.classList.remove('active');
+                        item.classList.add('text-gray-300');
+                    });
+                    
+                    this.classList.add('active', 'text-white');
+                    this.classList.remove('text-gray-300');
+                }
+            });
+        });
+        
+        // Intersection Observer for section animations
+        const sections = document.querySelectorAll('.section');
+        
+        const observerOptions = {
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+        
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+        
+        // Music player functionality
+        const floatingPlayer = document.getElementById('floatingPlayer');
+        const floatingPlayBtn = document.getElementById('floatingPlay');
+        const floatingPrevBtn = document.getElementById('floatingPrev');
+        const floatingNextBtn = document.getElementById('floatingNext');
+        const floatingProgress = document.getElementById('floatingProgress');
+        const floatingCurrentTime = document.getElementById('floatingCurrentTime');
+        const floatingDuration = document.getElementById('floatingDuration');
+        const floatingCover = document.getElementById('floatingCover');
+        const floatingTitle = document.getElementById('floatingTitle');
+        const floatingArtist = document.getElementById('floatingArtist');
+        const floatingLikeBtn = document.getElementById('floatingLike');
+        
+        let isPlaying = false;
+        let currentTrackIndex = 0;
+        
+        // Sample tracks data
+        const tracks = [
+            {
+                title: "Recruiting",
+                artist: "Táryk Rocha",
+                cover: "https://via.placeholder.com/60",
+                duration: "3:22",
+                url: "https://music.youtube.com/watch?v=SuDRzD13SAw",
+                liked: false
+            },
+            {
+                title: "Stupid",
+                artist: "Táryk Rocha",
+                cover: "https://via.placeholder.com/60",
+                duration: "3:45",
+                url: "https://music.youtube.com/watch?v=lILJhv-E8nI",
+                liked: false
+            },
+            {
+                title: "Alien",
+                artist: "Táryk Rocha",
+                cover: "https://via.placeholder.com/60",
+                duration: "4:12",
+                url: "https://music.youtube.com/watch?v=WvHDwK7P9ak",
+                liked: false
+            }
+        ];
+        
+        // Initialize player with first track
+        function loadTrack(index) {
+            const track = tracks[index];
+            floatingCover.src = track.cover;
+            floatingTitle.textContent = track.title;
+            floatingArtist.textContent = track.artist;
+            floatingDuration.textContent = track.duration;
+            floatingCurrentTime.textContent = "0:00";
+            floatingProgress.style.width = "0%";
+            
+            if (track.liked) {
+                floatingLikeBtn.innerHTML = '<i class="fas fa-heart text-bordeaux"></i>';
+            } else {
+                floatingLikeBtn.innerHTML = '<i class="far fa-heart"></i>';
+            }
+        }
+        
+        loadTrack(currentTrackIndex);
+        
+        // Play/pause toggle
+        floatingPlayBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                floatingPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                simulateProgress();
+            } else {
+                floatingPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+        
+        // Previous track
+        floatingPrevBtn.addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            loadTrack(currentTrackIndex);
+            if (isPlaying) {
+                floatingPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                simulateProgress();
+            }
+        });
+        
+        // Next track
+        floatingNextBtn.addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            loadTrack(currentTrackIndex);
+            if (isPlaying) {
+                floatingPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                simulateProgress();
+            }
+        });
+        
+        // Toggle like
+        floatingLikeBtn.addEventListener('click', () => {
+            tracks[currentTrackIndex].liked = !tracks[currentTrackIndex].liked;
+            if (tracks[currentTrackIndex].liked) {
+                floatingLikeBtn.innerHTML = '<i class="fas fa-heart text-bordeaux"></i>';
+            } else {
+                floatingLikeBtn.innerHTML = '<i class="far fa-heart"></i>';
+            }
+        });
+        
+        // Simulate progress bar movement
+        function simulateProgress() {
+            let progress = 0;
+            const durationInSeconds = 180; // Assuming 3 minutes for simulation
+            
+            const interval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                progress += 1;
+                const progressPercent = (progress / durationInSeconds) * 100;
+                floatingProgress.style.width = `${progressPercent}%`;
+                
+                // Update current time display
+                const minutes = Math.floor(progress / 60);
+                const seconds = progress % 60;
+                floatingCurrentTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (progress >= durationInSeconds) {
+                    clearInterval(interval);
+                    isPlaying = false;
+                    floatingPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    // Auto play next track
+                    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+                    loadTrack(currentTrackIndex);
+                    if (isPlaying) {
+                        floatingPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        simulateProgress();
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Play track from discography
+        document.querySelectorAll('.play-btn').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                currentTrackIndex = index % tracks.length;
+                loadTrack(currentTrackIndex);
+                isPlaying = true;
+                floatingPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                simulateProgress();
+                
+                // Show floating player if hidden
+                floatingPlayer.classList.remove('hidden');
+                
+                // Scroll to player if on mobile
+                if (window.innerWidth < 768) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Hide player when scrolling down, show when scrolling up
+        let lastScrollPosition = window.pageYOffset;
+        window.addEventListener('scroll', () => {
+            const currentScrollPosition = window.pageYOffset;
+            
+            if (currentScrollPosition > lastScrollPosition) {
+                // Scrolling down
+                floatingPlayer.classList.add('hidden');
+            } else {
+                // Scrolling up
+                floatingPlayer.classList.remove('hidden');
+            }
+            
+            lastScrollPosition = currentScrollPosition;
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=vini121255/taryk" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
